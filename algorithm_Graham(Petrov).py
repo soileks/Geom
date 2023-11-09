@@ -2,9 +2,27 @@
 from math import sqrt
 import random as rand
 from functools import cmp_to_key
-from time import time
+import time
 from matplotlib import pyplot as plt
 
+
+
+# Генерирует n псевдослучайных вещественных точек с заданными настройками
+def get_list_of_random_points(
+        n,
+        minX=1.0, minY=1.0,
+        maxX=10.0, maxY=10.0) -> list[tuple[float, float]]:    #то есть должен вернуться список кортежей
+    points_set = set()  #в множестве объекты неизменяемые, поэтому используются кортежи
+
+    i = 0
+    while i < n:
+        oldLen = len(points_set)
+        points_set.add((rand.uniform(minX, maxX), rand.uniform(minY, maxY))) #добавляем набор из координат точки
+        newLen = len(points_set)
+        if newLen != oldLen:    #исключаем добавление одинаковых точек(при добавлении в множество одинаковых наборов, оно не меняется)
+            i += 1
+
+    return list(points_set)
 
 def drawResult(N, V, title, scale=6.0):  #V - точки оболочки, N - это множество всех точек
     fig, ax = plt.subplots() #обЪекты: фигура(рамка) и оси 
@@ -114,14 +132,34 @@ def readF(): #читаем точки из файла
 ##############################################################################
 
 def main():
-    
-    N=readF()
-    t1 = time()
-    V = graham(N)
-    t2 = time()
-    print(f"Алгоритм Грэхэма: t = {t2 - t1}")
-    drawResult(N, V, title="Нахождение выпуклой оболочки:\nАлгоритм Грэхэма")
 
+    in1 = int(input("Доступные команды:\n"
+                    "1. Случайные точки\n"
+                    "2. Ввести точки из файла\n"
+                    "Ваш выбор: "))
+    if in1 == 1:
+        in2 = int(input("Введите число точек: "))
+        N = get_list_of_random_points(in2)
+    elif in1 == 2:
+        N=readF()
+
+    V = graham(N)
+   
+    drawResult(N, V, title="Нахождение выпуклой оболочки:\nАлгоритм Грехэма")
+    t_ = [0]
+    xaxis = [0]
+    for i in range(10, 10**3 + 2, 10):
+        xaxis.append(i)
+        start = time.perf_counter()*1000000
+        N = get_list_of_random_points(i)
+        V = graham(N)
+        t_.append(time.perf_counter()*1000000 - start)
+    plt.title("Время работы алгоритма Грехэма")
+    plt.xlabel("количество точек")
+    plt.ylabel("время работы(микросекунды)")
+    plt.plot(xaxis, t_, linestyle = '-', color = 'red', label = "Алгоритм Грехэма")
+    plt.legend()  
+    plt.show()
 
 main()
 
